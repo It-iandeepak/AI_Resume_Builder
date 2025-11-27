@@ -1,0 +1,129 @@
+.testimonials-section {
+    padding: 100px 0;
+    position: relative;
+    background-color: var(--bg-white);
+    /* Ensure it matches the dark bg */
+}
+
+.testimonials-header {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.testimonials-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(139, 92, 246, 0.1);
+    /* Purple tint */
+    color: #8b5cf6;
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.testimonials-headline {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 24px;
+    letter-spacing: -1px;
+}
+
+.testimonials-subheadline {
+    font-size: 18px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.testimonial-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 32px;
+    transition: all 0.3s ease;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.testimonial-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.testimonial-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.testimonial-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.testimonial-name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.testimonial-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.verified-icon {
+    color: #00d26a;
+    /* Keep the green check or use purple? Screenshot has green check. */
+    fill: #00d26a;
+    color: white;
+    /* Icon stroke white, fill green */
+}
+
+/* Adjusting verified icon to match screenshot style (filled green circle with white check) */
+.verified-icon {
+    fill: #d946ef;
+    color: var(--bg-white);
+    /* The check mark itself */
+}
+
+.testimonial-handle {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.testimonial-text {
+    font-size: 16px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .testimonials-headline {
+        font-size: 36px;
+    }
+}

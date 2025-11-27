@@ -1,0 +1,60 @@
+.brands-section {
+    padding: 60px 0;
+    text-align: center;
+}
+
+.brands-title {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 32px;
+    font-weight: 500;
+}
+
+.brands-grid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 48px;
+    flex-wrap: wrap;
+    opacity: 0.6;
+}
+
+.brand-logo {
+    font-size: 20px;
+    font-weight: 700;
+    color: #52525b;
+    cursor: default;
+    transition: all 0.2s;
+}
+
+.brand-logo:hover {
+    opacity: 1;
+    color: #e4e4e7;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+/* Specific font styles to mimic logos */
+.instagram {
+    font-family: 'Inter', sans-serif;
+    font-style: italic;
+}
+
+.framer {
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.microsoft {
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: 600;
+}
+
+.huawei {
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.walmart {
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
