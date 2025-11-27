@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LayoutTemplate, Palette, ChevronRight, ChevronLeft, Plus, X } from 'lucide-react';
+import { handleBoldCommand } from '../utils/textUtils';
 
 const AchievementsForm = ({ resumeData, setResumeData, handleNext, handlePrevious }) => {
     const [achievementsList, setAchievementsList] = useState([]);
@@ -81,7 +82,13 @@ const AchievementsForm = ({ resumeData, setResumeData, handleNext, handlePreviou
                         placeholder="Ex. Global rank 2041 on Leetcode"
                         value={achievementInput}
                         onChange={(e) => setAchievementInput(e.target.value)}
-                        onKeyPress={handleKeyPress}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                handleKeyPress(e);
+                            } else {
+                                handleBoldCommand(e, (syntheticEvent) => setAchievementInput(syntheticEvent.target.value));
+                            }
+                        }}
                         style={{ flex: 1 }}
                     />
                     <button

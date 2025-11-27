@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LayoutTemplate, Palette, ChevronRight, ChevronLeft, Plus, X, Loader2, Sparkles } from 'lucide-react';
 import { chatSession } from '../service/AIModal';
+import { handleBoldCommand } from '../utils/textUtils';
 
 const ExperienceForm = ({ resumeData, setResumeData, handleNext, handlePrevious }) => {
     const [experienceList, setExperienceList] = useState([]);
@@ -225,6 +226,7 @@ const ExperienceForm = ({ resumeData, setResumeData, handleNext, handlePrevious 
                                 value={item.workSummary}
                                 placeholder="Describe your responsibilities and achievements..."
                                 style={{ minHeight: '100px', resize: 'vertical' }}
+                                onKeyDown={(e) => handleBoldCommand(e, (event) => handleChange(index, event))}
                             />
                         </div>
                     </div>

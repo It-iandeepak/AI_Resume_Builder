@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LayoutTemplate, Palette, ChevronRight, ChevronLeft, Sparkles, Loader2 } from 'lucide-react';
 import { chatSession } from '../service/AIModal';
+import { handleBoldCommand } from '../utils/textUtils';
 
 const SummaryForm = ({ resumeData, handleInputChange, handleNext, handlePrevious }) => {
     const [loading, setLoading] = useState(false);
@@ -86,6 +87,7 @@ const SummaryForm = ({ resumeData, handleInputChange, handleNext, handlePrevious
                     placeholder="Write a compelling professional summary that highlights your key strengths and career objectives..."
                     value={resumeData.summary || ''}
                     onChange={handleInputChange}
+                    onKeyDown={(e) => handleBoldCommand(e, handleInputChange)}
                     style={{ minHeight: '150px', resize: 'vertical' }}
                 />
             </div>

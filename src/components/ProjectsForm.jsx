@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LayoutTemplate, Palette, ChevronRight, ChevronLeft, Plus, X } from 'lucide-react';
+import { handleBoldCommand } from '../utils/textUtils';
 
 const ProjectsForm = ({ resumeData, setResumeData, handleNext, handlePrevious }) => {
     const [projectsList, setProjectsList] = useState([]);
@@ -127,6 +128,7 @@ const ProjectsForm = ({ resumeData, setResumeData, handleNext, handlePrevious })
                                 onChange={(event) => handleChange(index, event)}
                                 value={item.techStack}
                                 placeholder="Ex. React.js, Node.js"
+                                onKeyDown={(e) => handleBoldCommand(e, (event) => handleChange(index, event))}
                             />
                         </div>
                         <div className="form-group">
@@ -168,6 +170,7 @@ const ProjectsForm = ({ resumeData, setResumeData, handleNext, handlePrevious })
                                 value={item.description}
                                 placeholder="Describe the project features and your role..."
                                 style={{ minHeight: '100px', resize: 'vertical' }}
+                                onKeyDown={(e) => handleBoldCommand(e, (event) => handleChange(index, event))}
                             />
                         </div>
                     </div>
