@@ -1,11 +1,11 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import cors from 'cors';
 import path from 'path';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
+import connectDB from './config/db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,7 +18,7 @@ import Resume from './models/Resume.js';
 
 const app = express();
 const PORT = process.env.PORT || 5001;
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key'; // Fallback for dev
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 
 // Middleware
 app.use(cors());
@@ -30,12 +30,16 @@ app.use((req, res, next) => {
     next();
 });
 
-// MongoDB Connection
-const MONGODB_URI = process.env.MONGODB_URI;
-
-mongoose.connect(MONGODB_URI)
-    .then(() => console.log('Connected to MongoDB successfully'))
-    .catch((err) => console.error('MongoDB connection error:', err));
+// Connect to DB for every request (cached)
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (error) {
+        console.error('Database connection failed:', error);
+        res.status(500).json({ message: 'Database connection failed', error: error.message });
+    }
+});
 
 // Auth Routes
 
@@ -44,17 +48,14 @@ app.post('/api/auth/register', async (req, res) => {
     try {
         const { name, email, password } = req.body;
 
-        // Check if user exists
         let user = await User.findOne({ email });
         if (user) {
             return res.status(400).json({ message: 'User already exists' });
         }
 
-        // Hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Create user
         user = new User({
             name,
             email,
@@ -63,13 +64,12 @@ app.post('/api/auth/register', async (req, res) => {
 
         await user.save();
 
-        // Generate JWT
         const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
 
         res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email } });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
@@ -78,25 +78,22 @@ app.post('/api/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Check if user exists
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        // Validate password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        // Generate JWT
         const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
 
         res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
@@ -121,7 +118,7 @@ app.post('/api/resumes', auth, async (req, res) => {
         res.json(resume);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 
@@ -132,7 +129,7 @@ app.get('/api/resumes', auth, async (req, res) => {
         res.json(resumes);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 
@@ -148,7 +145,7 @@ app.get('/api/resumes/:id', auth, async (req, res) => {
         res.json(resume);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 
@@ -164,7 +161,7 @@ app.get('/api/public/resumes/:id', async (req, res) => {
         res.json(resume);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 
@@ -176,7 +173,6 @@ app.put('/api/resumes/:id', auth, async (req, res) => {
         let resume = await Resume.findOne({ resumeId: req.params.id, userId: req.user.userId });
 
         if (!resume) {
-            // If not found, create it (upsert-like behavior for initial save)
             const newResume = new Resume({
                 userId: req.user.userId,
                 resumeId: req.params.id,
@@ -187,7 +183,6 @@ app.put('/api/resumes/:id', auth, async (req, res) => {
             return res.json(resume);
         }
 
-        // Update fields
         if (title) resume.title = title;
         Object.assign(resume, resumeData);
 
@@ -195,7 +190,7 @@ app.put('/api/resumes/:id', auth, async (req, res) => {
         res.json(resume);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 
@@ -211,12 +206,11 @@ app.delete('/api/resumes/:id', auth, async (req, res) => {
         res.json({ msg: 'Resume removed' });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 
 // Only listen if executed directly
-// In ESM, we can check process.argv[1] against import.meta.url
 import { realpathSync } from 'fs';
 const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
 
