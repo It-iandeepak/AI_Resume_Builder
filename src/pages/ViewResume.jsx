@@ -14,7 +14,7 @@ const ViewResume = () => {
     useEffect(() => {
         const fetchResume = async () => {
             try {
-                const response = await fetch(`http://localhost:5001/api/public/resumes/${id}`);
+                const response = await fetch(`/api/public/resumes/${id}`);
                 if (!response.ok) {
                     throw new Error('Resume not found');
                 }

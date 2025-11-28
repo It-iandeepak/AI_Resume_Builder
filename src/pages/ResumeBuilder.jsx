@@ -53,7 +53,7 @@ const ResumeBuilder = () => {
     const fetchResumeData = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5001/api/resumes/${id}`, {
+            const response = await fetch(`/api/resumes/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -72,7 +72,7 @@ const ResumeBuilder = () => {
             if (!id) return;
             try {
                 const token = localStorage.getItem('token');
-                await fetch(`http://localhost:5001/api/resumes/${id}`, {
+                await fetch(`/api/resumes/${id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -270,7 +270,7 @@ const ResumeBuilder = () => {
                             handleFinish={async () => {
                                 try {
                                     const token = localStorage.getItem('token');
-                                    await fetch(`http://localhost:5001/api/resumes/${id}`, {
+                                    await fetch(`/api/resumes/${id}`, {
                                         method: 'PUT',
                                         headers: {
                                             'Content-Type': 'application/json',

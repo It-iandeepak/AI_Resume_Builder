@@ -1,12 +1,20 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const path = require('path');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import path from 'path';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
 
-const User = require('./models/User');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, '.env') });
+
+import User from './models/User.js';
+import auth from './middleware/auth.js';
+import Resume from './models/Resume.js';
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -96,10 +104,6 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/', (req, res) => {
     res.send('API is running...');
 });
-
-// Resume Routes
-const auth = require('./middleware/auth');
-const Resume = require('./models/Resume');
 
 // Create Resume
 app.post('/api/resumes', auth, async (req, res) => {
@@ -211,6 +215,15 @@ app.delete('/api/resumes/:id', auth, async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+// Only listen if executed directly
+// In ESM, we can check process.argv[1] against import.meta.url
+import { realpathSync } from 'fs';
+const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
+
+if (isMainModule) {
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+}
+
+export default app;

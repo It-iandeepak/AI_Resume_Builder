@@ -24,7 +24,7 @@ const Dashboard = () => {
     const fetchResumes = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5001/api/resumes', {
+            const response = await fetch('/api/resumes', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -67,7 +67,7 @@ const Dashboard = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5001/api/resumes', {
+            const response = await fetch('/api/resumes', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -151,7 +151,7 @@ const Dashboard = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5001/api/resumes', {
+            const response = await fetch('/api/resumes', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -175,7 +175,7 @@ const Dashboard = () => {
         if (window.confirm('Are you sure you want to delete this resume? This action cannot be undone.')) {
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(`http://localhost:5001/api/resumes/${resumeId}`, {
+                const response = await fetch(`/api/resumes/${resumeId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const resumeSchema = new mongoose.Schema({
     userId: {
@@ -36,4 +36,4 @@ const resumeSchema = new mongoose.Schema({
     certifications: [Object]
 }, { timestamps: true });
 
-module.exports = mongoose.model('Resume', resumeSchema);
+export default mongoose.model('Resume', resumeSchema);

@@ -1,10 +1,16 @@
-const jwt = require('jsonwebtoken');
-const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+import jwt from 'jsonwebtoken';
+import path from 'path';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 
-module.exports = function (req, res, next) {
+export default function (req, res, next) {
     // Get token from header
     const token = req.header('Authorization');
 
