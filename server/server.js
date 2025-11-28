@@ -30,10 +30,25 @@ app.use((req, res, next) => {
     next();
 });
 
+// Health Check (No DB) - Place BEFORE DB Middleware
+app.get('/api/health', (req, res) => {
+    console.log("Health check called");
+    console.log("MONGODB_URI defined:", !!process.env.MONGODB_URI);
+    if (process.env.MONGODB_URI) {
+        console.log("MONGODB_URI starts with:", process.env.MONGODB_URI.substring(0, 15));
+    }
+    res.status(200).send('OK');
+});
+
 // Connect to DB for every request (cached)
 app.use(async (req, res, next) => {
+    // Skip DB connection for health check if it falls through (though it shouldn't)
+    if (req.path === '/api/health') return next();
+
     try {
+        console.log("Attempting DB connection...");
         await connectDB();
+        console.log("DB Connected");
         next();
     } catch (error) {
         console.error('Database connection failed:', error);
