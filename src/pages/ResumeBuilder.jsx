@@ -42,15 +42,7 @@ const ResumeBuilder = () => {
     const [isPublic, setIsPublic] = useState(false);
     const resumePreviewRef = useRef();
 
-    useEffect(() => {
-        const storedName = localStorage.getItem('userName');
-        if (storedName) {
-            setUserName(storedName);
-        }
-        fetchResumeData();
-    }, [id]);
-
-    const fetchResumeData = async () => {
+    const fetchResumeData = useCallback(async () => {
         try {
             const token = localStorage.getItem('token');
             const response = await fetch(`/api/resumes/${id}`, {
@@ -65,7 +57,15 @@ const ResumeBuilder = () => {
         } catch (error) {
             console.error('Error fetching resume:', error);
         }
-    };
+    }, [id]);
+
+    useEffect(() => {
+        const storedName = localStorage.getItem('userName');
+        if (storedName) {
+            setUserName(storedName);
+        }
+        fetchResumeData();
+    }, [id, fetchResumeData]);
 
     useEffect(() => {
         const saveResume = async () => {

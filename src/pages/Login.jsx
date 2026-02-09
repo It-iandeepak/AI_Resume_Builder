@@ -21,12 +21,14 @@ const Login = () => {
             });
 
             let data;
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                data = await response.json();
-            } else {
-                const text = await response.text();
-                throw new Error(text || 'Server returned non-JSON response');
+            console.log("Response status:", response.status, response.statusText);
+            const text = await response.text();
+
+            try {
+                data = JSON.parse(text);
+            } catch (err) {
+                console.error("Server returned non-JSON:", text);
+                throw new Error("Server error (non-JSON response). Please check backend logs.");
             }
 
             if (response.ok) {
