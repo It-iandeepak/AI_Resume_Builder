@@ -26,12 +26,15 @@ const SignUp = () => {
             });
 
             let data;
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                data = await response.json();
-            } else {
-                const text = await response.text();
-                throw new Error(text || 'Server returned non-JSON response');
+            console.log("Response status:", response.status, response.statusText);
+            const text = await response.text();
+            console.log("Response body text:", text.substring(0, 200)); // Log first 200 chars
+
+            try {
+                data = JSON.parse(text);
+            } catch (err) {
+                console.error("Server returned non-JSON:", text);
+                throw new Error("Server error (non-JSON response). Please check backend logs.");
             }
 
             if (response.ok) {

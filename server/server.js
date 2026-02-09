@@ -61,31 +61,42 @@ app.use(async (req, res, next) => {
 // Auth Routes
 
 // Register
+// Register
 app.post('/api/auth/register', async (req, res) => {
+    console.log("Entering register route");
     try {
         const { name, email, password } = req.body;
+        console.log("Register payload received:", { name, email, password: '***' });
 
+        console.log("Checking if user exists...");
         let user = await User.findOne({ email });
         if (user) {
+            console.log("User already exists");
             return res.status(400).json({ message: 'User already exists' });
         }
 
+        console.log("Hashing password...");
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
+        console.log("Creating new user instance...");
         user = new User({
             name,
             email,
             password: hashedPassword
         });
 
+        console.log("Saving user to DB...");
         await user.save();
+        console.log("User saved successfully");
 
+        console.log("Generating JWT...");
         const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
 
+        console.log("Sending success response");
         res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email } });
     } catch (error) {
-        console.error(error);
+        console.error("Error in register route:", error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
@@ -225,6 +236,15 @@ app.delete('/api/resumes/:id', auth, async (req, res) => {
         console.error(err.message);
         res.status(500).json({ message: 'Server Error', error: err.message });
     }
+});
+
+// Global Error Handler (MUST vary signature to include `next`)
+app.use((err, req, res, next) => {
+    console.error('Global Error Handler:', err);
+    res.status(err.status || 500).json({
+        message: err.message || 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? err.stack : {}
+    });
 });
 
 // Only listen if executed directly and NOT in production (Vercel)

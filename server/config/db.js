@@ -7,7 +7,8 @@ if (!cached) {
 }
 
 async function connectDB() {
-    if (cached.conn) {
+    // Check if we have a connection to the database or if it's currently connecting
+    if (cached.conn && mongoose.connection.readyState === 1) {
         return cached.conn;
     }
 
@@ -17,8 +18,9 @@ async function connectDB() {
 
     if (!cached.promise) {
         const opts = {
-            bufferCommands: false,
-            serverSelectionTimeoutMS: 5000, // 5 seconds timeout
+            bufferCommands: false, // Disable Mongoose buffering
+            serverSelectionTimeoutMS: 5000, // Fail fast if DB down
+            socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
         };
 
         cached.promise = mongoose.connect(process.env.MONGODB_URI, opts).then((mongoose) => {
