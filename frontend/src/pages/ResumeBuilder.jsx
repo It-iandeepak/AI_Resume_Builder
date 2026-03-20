@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, LayoutTemplate, LogOut, EyeOff, Eye, Share2 } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
