@@ -1,28 +1,21 @@
+// IMPORTANT: Load env vars before any other imports that might use them
+import 'dotenv/config';
+
 import express from 'express';
 import cors from 'cors';
-import path from 'path';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-if (process.env.NODE_ENV !== 'production') {
-    dotenv.config({ path: path.resolve(__dirname, '.env') });
-}
-
 import User from './models/User.js';
 import auth from './middleware/auth.js';
 import Resume from './models/Resume.js';
+import mongoose from 'mongoose';
 
 const app = express();
 const PORT = process.env.PORT || 5001;
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_change_me';
 
-// Middleware
+// ─── Middleware ─────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
 
@@ -32,35 +25,19 @@ app.use((req, res, next) => {
     next();
 });
 
-// Health Check (No DB) - Place BEFORE DB Middleware
+// ─── Health Check ────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
-    console.log("Health check called");
-    console.log("MONGODB_URI defined:", !!process.env.MONGODB_URI);
-    if (process.env.MONGODB_URI) {
-        console.log("MONGODB_URI starts with:", process.env.MONGODB_URI.substring(0, 15));
-    }
-    res.status(200).send('OK');
+    const dbStates = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+    res.status(200).json({
+        status: 'OK',
+        db: dbStates[mongoose.connection.readyState] || 'unknown',
+        database: mongoose.connection.name || 'N/A',
+        host: mongoose.connection.host || 'N/A'
+    });
 });
 
-// Connect to DB for every request (cached)
-app.use(async (req, res, next) => {
-    // Skip DB connection for health check if it falls through (though it shouldn't)
-    if (req.path === '/api/health') return next();
+// ─── Auth Routes ─────────────────────────────────────────────────────────────
 
-    try {
-        console.log("Attempting DB connection...");
-        await connectDB();
-        console.log("DB Connected");
-        next();
-    } catch (error) {
-        console.error('Database connection failed:', error);
-        res.status(500).json({ message: 'Database connection failed', error: error.message });
-    }
-});
-
-// Auth Routes
-
-// Register
 // Register
 app.post('/api/auth/register', async (req, res) => {
     console.log("Entering register route");
@@ -68,32 +45,20 @@ app.post('/api/auth/register', async (req, res) => {
         const { name, email, password } = req.body;
         console.log("Register payload received:", { name, email, password: '***' });
 
-        console.log("Checking if user exists...");
         let user = await User.findOne({ email });
         if (user) {
             console.log("User already exists");
             return res.status(400).json({ message: 'User already exists' });
         }
 
-        console.log("Hashing password...");
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        console.log("Creating new user instance...");
-        user = new User({
-            name,
-            email,
-            password: hashedPassword
-        });
-
-        console.log("Saving user to DB...");
+        user = new User({ name, email, password: hashedPassword });
         await user.save();
         console.log("User saved successfully");
 
-        console.log("Generating JWT...");
-        const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
-
-        console.log("Sending success response");
+        const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '7d' });
         res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email } });
     } catch (error) {
         console.error("Error in register route:", error);
@@ -116,8 +81,7 @@ app.post('/api/auth/login', async (req, res) => {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
-
+        const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '7d' });
         res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
     } catch (error) {
         console.error(error);
@@ -125,23 +89,23 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// Basic Route
+// ─── Basic Route ─────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
     res.send('API is running...');
 });
+
+// ─── Resume Routes ────────────────────────────────────────────────────────────
 
 // Create Resume
 app.post('/api/resumes', auth, async (req, res) => {
     try {
         const { resumeId, title, ...resumeData } = req.body;
-
         const newResume = new Resume({
             userId: req.user.userId,
             resumeId,
             title,
             ...resumeData
         });
-
         const resume = await newResume.save();
         res.json(resume);
     } catch (err) {
@@ -165,11 +129,9 @@ app.get('/api/resumes', auth, async (req, res) => {
 app.get('/api/resumes/:id', auth, async (req, res) => {
     try {
         const resume = await Resume.findOne({ resumeId: req.params.id, userId: req.user.userId });
-
         if (!resume) {
             return res.status(404).json({ msg: 'Resume not found' });
         }
-
         res.json(resume);
     } catch (err) {
         console.error(err.message);
@@ -181,11 +143,9 @@ app.get('/api/resumes/:id', auth, async (req, res) => {
 app.get('/api/public/resumes/:id', async (req, res) => {
     try {
         const resume = await Resume.findOne({ resumeId: req.params.id });
-
         if (!resume) {
             return res.status(404).json({ msg: 'Resume not found' });
         }
-
         res.json(resume);
     } catch (err) {
         console.error(err.message);
@@ -197,7 +157,6 @@ app.get('/api/public/resumes/:id', async (req, res) => {
 app.put('/api/resumes/:id', auth, async (req, res) => {
     try {
         const { title, ...resumeData } = req.body;
-
         let resume = await Resume.findOne({ resumeId: req.params.id, userId: req.user.userId });
 
         if (!resume) {
@@ -213,7 +172,6 @@ app.put('/api/resumes/:id', auth, async (req, res) => {
 
         if (title) resume.title = title;
         Object.assign(resume, resumeData);
-
         await resume.save();
         res.json(resume);
     } catch (err) {
@@ -226,11 +184,9 @@ app.put('/api/resumes/:id', auth, async (req, res) => {
 app.delete('/api/resumes/:id', auth, async (req, res) => {
     try {
         const resume = await Resume.findOneAndDelete({ resumeId: req.params.id, userId: req.user.userId });
-
         if (!resume) {
             return res.status(404).json({ msg: 'Resume not found' });
         }
-
         res.json({ msg: 'Resume removed' });
     } catch (err) {
         console.error(err.message);
@@ -238,7 +194,7 @@ app.delete('/api/resumes/:id', auth, async (req, res) => {
     }
 });
 
-// Global Error Handler (MUST vary signature to include `next`)
+// ─── Global Error Handler ─────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
     console.error('Global Error Handler:', err);
     res.status(err.status || 500).json({
@@ -247,11 +203,18 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Only listen if executed directly and NOT in production (Vercel)
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
+// ─── Start Server ─────────────────────────────────────────────────────────────
+connectDB()
+    .then(() => {
+        app.listen(PORT, () => {
+            console.log(`🚀 Server is running on http://localhost:${PORT}`);
+            console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+            console.log(`📦 Database: ${mongoose.connection.name}`);
+        });
+    })
+    .catch((err) => {
+        console.error('❌ Failed to connect to database. Server not started.', err);
+        process.exit(1);
     });
-}
 
 export default app;
